@@ -1,7 +1,7 @@
 package org.example;
 
 import org.example.model.Row;
-import org.example.service.ChunkHolder;
+import org.example.service.ChunkFileHolder;
 import org.example.service.ChunkService;
 import org.example.service.IpCounterService;
 import org.example.service.PathHolder;
@@ -19,14 +19,14 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         long bigStart = System.currentTimeMillis();
-        String inputFileName = "D:\\test_tasks\\logs\\ip.txt";
-        String outputFileName = "D:\\test_tasks\\logs\\result.txt";
-        long chunkSize = 5_000_000;
+        String inputFileName = "F:\\logs\\ip.txt";
+        String outputFileName = "F:\\logs\\result.txt";
+        int chunkSize = 10_000_000;
 
         PathHolder pathHolder = new PathHolder(inputFileName, outputFileName);
         BufferedReader reader = new BufferedReader(new FileReader(pathHolder.getInputFile()));
-        ChunkHolder chunkHolder = new ChunkHolder();
-        ChunkService chunkService = new ChunkService(reader, chunkSize, chunkHolder, pathHolder);
+        ChunkFileHolder chunkFileHolder = new ChunkFileHolder();
+        ChunkService chunkService = new ChunkService(reader, chunkSize, chunkFileHolder, pathHolder);
         IpCounterService ipCounter = new IpCounterService();
 
 
@@ -39,7 +39,7 @@ public class Main {
 
         LOGGER.info("start creating queue");
         start = System.currentTimeMillis();
-        Queue<Row> queue = chunkService.createChunkQueue(chunkHolder.getSortedChunks());
+        Queue<Row> queue = chunkService.createChunkQueue(chunkFileHolder.getSortedChunks());
         end = System.currentTimeMillis();
         LOGGER.info("end creating queue" + " " + "process time: " + (end - start));
 

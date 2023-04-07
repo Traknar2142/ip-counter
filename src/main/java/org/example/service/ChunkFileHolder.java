@@ -4,10 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChunkHolder {
+public class ChunkFileHolder {
     private final List<File> sortedChunks;
 
-    public ChunkHolder() {
+    public ChunkFileHolder() {
         this.sortedChunks = new ArrayList<>();
     }
 

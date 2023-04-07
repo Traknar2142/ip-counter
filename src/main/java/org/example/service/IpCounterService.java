@@ -16,14 +16,10 @@ public class IpCounterService {
                 count++;
             }
             prevIpValue = row.getRow();
-            DataInputStream rowInputStream = row.getDataInputStream();
-            if (rowInputStream.available() > 0) {
-                int nextRow = rowInputStream.readInt();
-                queue.offer(new Row(nextRow, row.getDataInputStream()));
-            } else {
-                row.getDataInputStream().close();
+            row.reorderRow();
+            if (row.getRow() != -1){
+                queue.offer(row);
             }
-
         }
         return count;
     }
