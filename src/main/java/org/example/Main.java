@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.factory.ChunkWriterFactory;
 import org.example.model.Row;
 import org.example.service.ChunkFileHolder;
 import org.example.service.ChunkService;
@@ -23,7 +24,8 @@ public class Main {
 
         PathHolder pathHolder = new PathHolder(inputFileName, outputFileName);
         ChunkFileHolder chunkFileHolder = new ChunkFileHolder();
-        ChunkService chunkService = new ChunkService(chunkSize, chunkFileHolder, pathHolder);
+        ChunkWriterFactory chunkWriterFactory = new ChunkWriterFactory();
+        ChunkService chunkService = new ChunkService(chunkSize, chunkFileHolder, pathHolder, chunkWriterFactory);
         IpCounterService ipCounter = new IpCounterService();
 
 
