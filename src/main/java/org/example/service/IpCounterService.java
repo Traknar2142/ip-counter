@@ -2,7 +2,6 @@ package org.example.service;
 
 import org.example.model.Row;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Queue;
 
@@ -17,7 +16,7 @@ public class IpCounterService {
             }
             prevIpValue = row.getRow();
             row.reorderRow();
-            if (row.getRow() != -1){
+            if (row.getRow() != -1) {
                 queue.offer(row);
             }
         }

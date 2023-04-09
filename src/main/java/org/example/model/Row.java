@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Row implements Comparable<Row> {
     private int row;
-    private DataInputStream dataInputStream;
+    private final DataInputStream dataInputStream;
     private List<Integer> cache;
     private int byteBufferSize;
     private int cacheIndex;
@@ -22,12 +22,8 @@ public class Row implements Comparable<Row> {
         return row;
     }
 
-    public DataInputStream getDataInputStream() {
-        return dataInputStream;
-    }
-
     public int getFromCache() throws IOException {
-        if (cache == null || cacheIndex < cache.size()) {
+        if (cache == null || cacheIndex > cache.size() - 1) {
             refillCache();
             cacheIndex = 0;
         }
@@ -53,8 +49,9 @@ public class Row implements Comparable<Row> {
             cache.add(-1);
         } else {
             ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
-            List<Integer> intBuffer = new ArrayList<>();
-            for (int i = 0; i < bytesRead / 4; i++) {
+            int cashCapacity = bytesRead / 4;
+            List<Integer> intBuffer = new ArrayList<>(cashCapacity);
+            for (int i = 0; i < cashCapacity; i++) {
                 int value = byteBuffer.getInt();
                 intBuffer.add(value);
             }

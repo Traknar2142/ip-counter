@@ -6,8 +6,6 @@ import org.example.service.ChunkService;
 import org.example.service.IpCounterService;
 import org.example.service.PathHolder;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,14 +17,13 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         long bigStart = System.currentTimeMillis();
-        String inputFileName = "F:\\logs\\ip.txt";
+        String inputFileName = "F:\\logs\\ip_addresses.txt";
         String outputFileName = "F:\\logs\\result.txt";
         int chunkSize = 10_000_000;
 
         PathHolder pathHolder = new PathHolder(inputFileName, outputFileName);
-        BufferedReader reader = new BufferedReader(new FileReader(pathHolder.getInputFile()));
         ChunkFileHolder chunkFileHolder = new ChunkFileHolder();
-        ChunkService chunkService = new ChunkService(reader, chunkSize, chunkFileHolder, pathHolder);
+        ChunkService chunkService = new ChunkService(chunkSize, chunkFileHolder, pathHolder);
         IpCounterService ipCounter = new IpCounterService();
 
 
@@ -34,26 +31,28 @@ public class Main {
         long start = System.currentTimeMillis();
         chunkService.convertFileToChunks();
         long end = System.currentTimeMillis();
-
-        LOGGER.info("end reading file" + " " + "process time: " + (end - start));
+        LOGGER.info("end reading file");
+        LOGGER.info("process time: " + (end - start));
 
         LOGGER.info("start creating queue");
         start = System.currentTimeMillis();
         Queue<Row> queue = chunkService.createChunkQueue(chunkFileHolder.getSortedChunks());
         end = System.currentTimeMillis();
-        LOGGER.info("end creating queue" + " " + "process time: " + (end - start));
+        LOGGER.info("end creating queue");
+        LOGGER.info("process time: " + (end - start));
 
         LOGGER.info("start counting result");
         start = System.currentTimeMillis();
         long count = ipCounter.count(queue);
         end = System.currentTimeMillis();
-        LOGGER.info("end counting result" + " " + "process time: " + (end - start));
+        LOGGER.info("end counting result");
+        LOGGER.info("process time: " + (end - start));
 
         PrintWriter writer = new PrintWriter(new FileWriter(pathHolder.getResultFile()));
         writer.println("Number of unique IP addresses: " + count);
         long bigEnd = System.currentTimeMillis();
         LOGGER.info("Number of unique IP addresses: " + count);
-        LOGGER.info( "all process took: " + (bigEnd - bigStart));
+        LOGGER.info("all process took: " + (bigEnd - bigStart));
         writer.close();
     }
 
