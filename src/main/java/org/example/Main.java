@@ -20,7 +20,7 @@ public class Main {
         long bigStart = System.currentTimeMillis();
         String inputFileName = "F:\\logs\\ip_addresses.txt";
         String outputFileName = "F:\\logs\\result.txt";
-        int chunkSize = 10_000_000;
+        int chunkSize = 50_000_000;
 
         PathHolder pathHolder = new PathHolder(inputFileName, outputFileName);
         ChunkFileHolder chunkFileHolder = new ChunkFileHolder();
@@ -55,6 +55,7 @@ public class Main {
         long bigEnd = System.currentTimeMillis();
         LOGGER.info("Number of unique IP addresses: " + count);
         LOGGER.info("all process took: " + (bigEnd - bigStart));
+        pathHolder.deleteTempDir();
         writer.close();
     }
 

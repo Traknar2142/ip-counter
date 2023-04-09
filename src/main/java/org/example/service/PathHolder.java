@@ -1,6 +1,9 @@
 package org.example.service;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class PathHolder {
     private final File inputFile;
@@ -24,5 +27,12 @@ public class PathHolder {
 
     public File getTempDir() {
         return tempDir;
+    }
+
+    public void deleteTempDir() throws IOException {
+        Files.walk(tempDir.toPath())
+                .map(Path::toFile)
+                .forEach(File::delete);
+        tempDir.delete();
     }
 }
