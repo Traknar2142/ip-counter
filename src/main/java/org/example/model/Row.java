@@ -58,8 +58,9 @@ public class Row implements Comparable<Row> {
                 }
                 cache = intBuffer;
             }
-        } finally {
+        } catch (IOException e){
             dataInputStream.close();
+            throw e;
         }
     }
 

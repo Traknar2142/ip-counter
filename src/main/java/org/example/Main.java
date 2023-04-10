@@ -11,6 +11,8 @@ import org.example.service.PathHolder;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Queue;
 import java.util.logging.Logger;
 
@@ -19,9 +21,13 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         long bigStart = System.currentTimeMillis();
-        String inputFileName = "F:\\logs\\ip_addresses.txt";
-        String outputFileName = "F:\\logs\\result.txt";
-        int chunkSize = 50_000_000;
+        String inputFileName = args[0];
+
+        Path inputPath = Paths.get(inputFileName);
+        Path outputPath = inputPath.resolveSibling("result.txt");
+        String outputFileName = outputPath.toString();
+
+        int chunkSize = Integer.parseInt(args[1]);
 
         PathHolder pathHolder = new PathHolder(inputFileName, outputFileName);
         FileOperationService fileOperationService = new FileOperationService();
@@ -37,21 +43,21 @@ public class Main {
         chunkService.convertFileToChunks();
         long end = System.currentTimeMillis();
         LOGGER.info("end reading file");
-        LOGGER.info("process time: " + (end - start));
+        LOGGER.info("process time: " + (end - start) + " milliseconds");
 
         LOGGER.info("start creating queue");
         start = System.currentTimeMillis();
         Queue<Row> queue = chunkService.createChunkQueue(chunkFileHolder.getSortedChunks());
         end = System.currentTimeMillis();
         LOGGER.info("end creating queue");
-        LOGGER.info("process time: " + (end - start));
+        LOGGER.info("process time: " + (end - start) + " milliseconds");
 
         LOGGER.info("start counting result");
         start = System.currentTimeMillis();
         long count = ipCounter.count(queue);
         end = System.currentTimeMillis();
         LOGGER.info("end counting result");
-        LOGGER.info("process time: " + (end - start));
+        LOGGER.info("process time: " + (end - start) + " milliseconds");
 
         PrintWriter writer = new PrintWriter(new FileWriter(pathHolder.getResultFile()));
         writer.println("Number of unique IP addresses: " + count);
@@ -59,7 +65,7 @@ public class Main {
         LOGGER.info("Number of unique IP addresses: " + count);
 
         fileOperationService.deleteDir(pathHolder.getTempDir());
-        LOGGER.info("all process took: " + (bigEnd - bigStart));
+        LOGGER.info("all process took: " + (bigEnd - bigStart) + " milliseconds");
         writer.close();
     }
 
