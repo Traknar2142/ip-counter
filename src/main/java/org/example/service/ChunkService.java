@@ -52,55 +52,56 @@ public class ChunkService {
     }
 
     public void convertFileToChunks() throws IOException {
-        List<Integer> chunk = new ArrayList<>(chunkSize);
+        try (BufferedInputStream reader = new BufferedInputStream(new FileInputStream(pathHolder.getInputFile()))) {
+            List<Integer> chunk = new ArrayList<>(chunkSize);
 
-        byte[] buffer = new byte[chunkSize];
-        int bytesRead;
-        BufferedInputStream reader = new BufferedInputStream(new FileInputStream(pathHolder.getInputFile()));
-        byte[] tail = new byte[16];
+            byte[] buffer = new byte[chunkSize];
+            int bytesRead;
+            byte[] tail = new byte[16];
 
-        int lastLnIndex = 0;
-        int lastBufferIndex = 0;
-        //в цикле читаем файл и записываем байты в буфер
-        while ((bytesRead = reader.read(buffer, 0, buffer.length)) != -1) {
-            int start = 0;
-            //читаем буффер
-            for (int i = 0; i < bytesRead; i++) {
-                //условие начитки байтов начала буфера до первого знака переноса строки
-                if (buffer[i] == '\n' && start == 0) {
-                    lastLnIndex = i;
-                    byte[] byteLine = finishReadline(tail, buffer, i);
-                    processBuffer(byteLine, 0, byteLine.length, chunk);
-                    start = i + 1;
+            int lastLnIndex = 0;
+            int lastBufferIndex = 0;
+            //в цикле читаем файл и записываем байты в буфер
+            while ((bytesRead = reader.read(buffer, 0, buffer.length)) != -1) {
+                int start = 0;
+                //читаем буффер
+                for (int i = 0; i < bytesRead; i++) {
+                    //условие начитки байтов начала буфера до первого знака переноса строки
+                    if (buffer[i] == '\n' && start == 0) {
+                        lastLnIndex = i;
+                        byte[] byteLine = finishReadline(tail, buffer, i);
+                        processBuffer(byteLine, 0, byteLine.length, chunk);
+                        start = i + 1;
 
-                    //условие начитки остального буфера
-                } else if (buffer[i] == '\n') {
-                    lastLnIndex = i;
-                    int length = i - start;
-                    processBuffer(buffer, start, length, chunk);
-                    start = i + 1;
+                        //условие начитки остального буфера
+                    } else if (buffer[i] == '\n') {
+                        lastLnIndex = i;
+                        int length = i - start;
+                        processBuffer(buffer, start, length, chunk);
+                        start = i + 1;
+                    }
+                }
+                //случай, если в конце целой пачки есть разорванный IP
+                if (lastLnIndex < bytesRead && bytesRead == chunkSize) {
+                    //собираем первую половину
+                    tail = readTail(buffer, lastLnIndex);
+                    lastLnIndex = 0;
+                }
+                //случай, если остался последний буфер со второй половиной разорванного IP
+                if (bytesRead < chunkSize) {
+                    //переменная нужна для начитки байтов из последнего буфера
+                    lastBufferIndex = bytesRead;
                 }
             }
-            //случай, если в конце целой пачки есть разорванный IP
-            if (lastLnIndex < bytesRead && bytesRead == chunkSize) {
-                //собираем первую половину
-                tail = readTail(buffer, lastLnIndex);
-                lastLnIndex = 0;
+
+            //После обработки всех буферов начитаем байты последнего разорванного IP в документе
+            if (lastLnIndex == 0) {
+                byte[] completeLine = finishReadline(tail, buffer, lastBufferIndex);
+                processBuffer(completeLine, 0, completeLine.length, chunk);
             }
-            //случай, если остался последний буфер со второй половиной разорванного IP
-            if (bytesRead < chunkSize) {
-                //переменная нужна для начитки байтов из последнего буфера
-                lastBufferIndex = bytesRead;
+            if (!chunk.isEmpty()) {
+                createSortedChunk(chunk);
             }
-        }
-        //После обработки всех буферов начитаем байты последнего разорванного IP в документе
-        if (lastLnIndex == 0) {
-            byte[] completeLine = finishReadline(tail, buffer, lastBufferIndex);
-            processBuffer(completeLine, 0, completeLine.length, chunk);
-        }
-        reader.close();
-        if (!chunk.isEmpty()) {
-            createSortedChunk(chunk);
         }
     }
 
@@ -147,21 +148,23 @@ public class ChunkService {
 
     private File writeChunkFile(List<Integer> chunk) throws IOException {
         File sortedChunk = File.createTempFile("sortedchunk", ".bin", pathHolder.getTempDir());
-        DataOutputStream writer = chunkWriterFactory.getWriter(sortedChunk);
+        try (DataOutputStream writer = chunkWriterFactory.getWriter(sortedChunk)) {
 
-        //на каждое число по 4 байта
-        byte[] buffer = new byte[chunk.size() * 4];
-        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
+            //на каждое число по 4 байта
+            byte[] buffer = new byte[chunk.size() * 4];
+            ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
-        //записываем числа в буфер
-        for (Integer integer : chunk) {
-            byteBuffer.putInt(integer);
+            //записываем числа в буфер
+            for (Integer integer : chunk) {
+                byteBuffer.putInt(integer);
+            }
+
+            //записываем весь буфер за раз в файл чанка
+            writer.write(buffer);
+            writer.close();
+
+            return sortedChunk;
         }
-
-        //записываем весь буфер за раз в файл чанка
-        writer.write(buffer);
-        writer.close();
-        return sortedChunk;
     }
 
 }

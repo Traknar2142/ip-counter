@@ -4,6 +4,7 @@ import org.example.factory.ChunkWriterFactory;
 import org.example.model.Row;
 import org.example.service.ChunkFileHolder;
 import org.example.service.ChunkService;
+import org.example.service.FileOperationService;
 import org.example.service.IpCounterService;
 import org.example.service.PathHolder;
 
@@ -23,6 +24,8 @@ public class Main {
         int chunkSize = 50_000_000;
 
         PathHolder pathHolder = new PathHolder(inputFileName, outputFileName);
+        FileOperationService fileOperationService = new FileOperationService();
+        fileOperationService.createDir(pathHolder.getTempDir());
         ChunkFileHolder chunkFileHolder = new ChunkFileHolder();
         ChunkWriterFactory chunkWriterFactory = new ChunkWriterFactory();
         ChunkService chunkService = new ChunkService(chunkSize, chunkFileHolder, pathHolder, chunkWriterFactory);
@@ -54,8 +57,9 @@ public class Main {
         writer.println("Number of unique IP addresses: " + count);
         long bigEnd = System.currentTimeMillis();
         LOGGER.info("Number of unique IP addresses: " + count);
+
+        fileOperationService.deleteDir(pathHolder.getTempDir());
         LOGGER.info("all process took: " + (bigEnd - bigStart));
-        pathHolder.deleteTempDir();
         writer.close();
     }
 

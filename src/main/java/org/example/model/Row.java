@@ -41,21 +41,25 @@ public class Row implements Comparable<Row> {
     }
 
     private void refillCache() throws IOException {
-        byte[] buffer = new byte[byteBufferSize];
-        int bytesRead = dataInputStream.read(buffer);
-        if (isFileRead(bytesRead)) {
-            dataInputStream.close();
-            cache = new ArrayList<>(1);
-            cache.add(-1);
-        } else {
-            ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
-            int cashCapacity = bytesRead / 4;
-            List<Integer> intBuffer = new ArrayList<>(cashCapacity);
-            for (int i = 0; i < cashCapacity; i++) {
-                int value = byteBuffer.getInt();
-                intBuffer.add(value);
+        try {
+            byte[] buffer = new byte[byteBufferSize];
+            int bytesRead = dataInputStream.read(buffer);
+            if (isFileRead(bytesRead)) {
+                dataInputStream.close();
+                cache = new ArrayList<>(1);
+                cache.add(-1);
+            } else {
+                ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
+                int cashCapacity = bytesRead / 4;
+                List<Integer> intBuffer = new ArrayList<>(cashCapacity);
+                for (int i = 0; i < cashCapacity; i++) {
+                    int value = byteBuffer.getInt();
+                    intBuffer.add(value);
+                }
+                cache = intBuffer;
             }
-            cache = intBuffer;
+        } finally {
+            dataInputStream.close();
         }
     }
 
